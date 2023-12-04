@@ -52,7 +52,7 @@ class _SvcAgent:
         X_test_vectorized = self._vectorizer.transform(X_test)
 
         # train the model
-        self._model = SVC(kernel="linear")
+        self._model = SVC(kernel="linear", probability=True)
         self._model.fit(X_train_vectorized, y_train)
 
         # evaluate the model

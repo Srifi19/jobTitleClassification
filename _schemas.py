@@ -8,24 +8,10 @@ class Model(str, Enum):
     SVC = "svc"
 
 
-class GetPrivateJobTitleRequest(BaseModel):
-    user_job_title: str
-    model: Model = Model.FAISS
-
-    class Config:
-        json_schema_extra = {
-            "examples": [
-                {
-                    "user_job_title": "JobTitle",
-                    "model": "faiss",
-                }
-            ]
-        }
-
-
 class GetPrivateJobTitleResponse(BaseModel):
+    formatted_input: str
     job_title: str
-    score: float
+    score: float | None
     execution_time: float
     model: Model
     cost: dict | None = None

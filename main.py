@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from time import time
 
-from _schemas import GetPrivateJobTitleRequest, GetPrivateJobTitleResponse, Model
+from _schemas import GetPrivateJobTitleResponse, Model
 
 # all models
 from agents.faiss_agent import FAISS_AGENT
@@ -42,22 +42,16 @@ async def get_private_job_title(
     # start timer
     start_time = time()
 
-    # init info object
-    info = GetPrivateJobTitleRequest(
-        user_job_title=job_title,
-        model=model,
-    )
-
     # check entered job title
-    if info.user_job_title.strip() == "":
+    if job_title.strip() == "":
         return HTTPException(status_code=400, detail="user_job_title cannot be empty")
 
     # make sure that the model is valid
-    if info.model not in Model.__members__.values():
+    if model not in Model.__members__.values():
         return HTTPException(status_code=400, detail="Invalid model")
 
     # clean up the user input
-    user_job_title = info.user_job_title.strip()
+    user_job_title = job_title.strip()
 
     # if ignore_case is True
     if ignore_case:
@@ -82,7 +76,7 @@ async def get_private_job_title(
     # ================================= #
     # ---------- FAISS Model ---------- #
     # ================================= #
-    if info.model == Model.FAISS:
+    if model == Model.FAISS:
         faiss_results = FAISS_AGENT.get_similar_titles(
             user_job_title,
             top_n=top_n,
@@ -91,9 +85,10 @@ async def get_private_job_title(
         # return the results
         return [
             GetPrivateJobTitleResponse(
+                formatted_input=user_job_title,
                 job_title=option,
                 score=score,
-                model=info.model,
+                model=model,
                 execution_time=time() - start_time,
             )
             for option, score in faiss_results
@@ -102,7 +97,7 @@ async def get_private_job_title(
     # =============================== #
     # ---------- SVC Model ---------- #
     # =============================== #
-    if info.model == Model.SVC:
+    if model == Model.SVC:
         # predict the job title
         predicted_job_titles = SVC_AGENT.predict_job_title(
             user_job_title,
@@ -112,9 +107,10 @@ async def get_private_job_title(
         # return the results
         return [
             GetPrivateJobTitleResponse(
+                formatted_input=user_job_title,
                 job_title=option,
-                score=1,
-                model=info.model,
+                score=None,
+                model=model,
                 execution_time=time() - start_time,
             )
             for option in predicted_job_titles
@@ -129,9 +125,10 @@ async def get_private_job_title(
     )
     return [
         GetPrivateJobTitleResponse(
+            formatted_input=user_job_title,
             job_title=gpt_response.response,
-            score=1,
-            model=info.model,
+            score=None,
+            model=model,
             execution_time=time() - start_time,
             cost={
                 "prompt_tokens": gpt_response.input_tokens,
