@@ -2,7 +2,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from time import time
 
-from _schemas import GetPrivateJobTitleResponse, Model
+from _schemas import (
+    GetPrivateJobTitleResponse,
+    GetSuggestedCareerPathsResponse,
+    SuggestedCareerPath,
+    Model,
+)
 
 # all models
 from agents.faiss_agent import FAISS_AGENT
@@ -26,6 +31,54 @@ app.add_middleware(
     allow_methods=["*"],  # You can specify the list of allowed methods here
     allow_headers=["*"],  # You can specify the list of allowed headers here
 )
+
+
+@app.post(
+    "/suggest-career-path",
+    response_model=GetSuggestedCareerPathsResponse,
+)
+async def get_suggested_career_path(
+    hard_skills: list[str],
+    soft_skills: list[str],
+):
+    # start timer
+    start_time = time()
+
+    # check entered hard skills
+    if len(hard_skills) in [0, 30]:
+        raise HTTPException(
+            status_code=400, detail="hard_skills cannot be empty or more than 30"
+        )
+
+    # check entered soft skills
+    if len(soft_skills) in [0, 15]:
+        raise HTTPException(
+            status_code=400, detail="soft_skills cannot be empty or more than 15"
+        )
+
+    # get suggested career paths
+    suggested_paths = GPT_AGENT.generate_recommended_paths(
+        hard_skills=hard_skills,
+        soft_skills=soft_skills,
+    )
+
+    # return the results
+    results = [
+        SuggestedCareerPath(
+            path=suggested_path.path,
+            reasons=suggested_path.reasons,
+        )
+        for suggested_path in suggested_paths.response.suggested_paths
+    ]
+    return GetSuggestedCareerPathsResponse(
+        suggested_paths=results,
+        execution_time=time() - start_time,
+        cost={
+            "prompt_tokens": suggested_paths.input_tokens,
+            "completion_tokens": suggested_paths.output_tokens,
+            "cost": suggested_paths.cost,
+        },
+    )
 
 
 @app.get(

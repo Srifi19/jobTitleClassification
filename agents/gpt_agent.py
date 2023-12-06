@@ -15,7 +15,7 @@ from config.prompting_config import *
 
 @dataclass
 class GptAgentResponse:
-    response: str
+    response: any
     input_tokens: int
     output_tokens: int
     cost: float
@@ -70,6 +70,37 @@ class _GptAgent:
             output_tokens=callback.completion_tokens,
             cost=callback.total_cost,
         )
+
+    def generate_recommended_paths(
+        self,
+        hard_skills: list[str],
+        soft_skills: list[str],
+    ) -> GptAgentResponse:
+        LOGGER.log(
+            f"Generating recommended paths using GPT agent...\n't - Hard Skills: {hard_skills}\n\t - Soft Skills: {soft_skills}",
+            level=LoggingLevels.INFO,
+        )
+        # format the input
+        model_input = PATHS_GENERATION_PROMPT.format_prompt(
+            hard_skills=hard_skills,
+            soft_skills=soft_skills,
+        )
+        # OPENAI Callback to track the cost
+        with get_openai_callback() as callback:
+            # run the chain
+            response = PATHS_GENERATION_OUTPUT_PARSER.parse(
+                self._chat_model.call_as_llm(model_input.to_string())
+            )
+            LOGGER.log(
+                f"User: {model_input.to_string()}\nAI: {response}",
+                level=LoggingLevels.INFO,
+            )
+            return GptAgentResponse(
+                response=response,
+                input_tokens=callback.prompt_tokens,
+                output_tokens=callback.completion_tokens,
+                cost=callback.total_cost,
+            )
 
 
 GPT_AGENT = _GptAgent()

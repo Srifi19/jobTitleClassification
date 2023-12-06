@@ -15,3 +15,14 @@ class GetPrivateJobTitleResponse(BaseModel):
     execution_time: float
     model: Model
     cost: dict | None = None
+
+
+class SuggestedCareerPath(BaseModel):
+    path: str
+    reasons: list[str]
+
+
+class GetSuggestedCareerPathsResponse(BaseModel):
+    suggested_paths: list[SuggestedCareerPath]
+    execution_time: float
+    cost: dict
