@@ -44,11 +44,11 @@ async def get_private_job_title(
 
     # check entered job title
     if job_title.strip() == "":
-        return HTTPException(status_code=400, detail="user_job_title cannot be empty")
+        raise HTTPException(status_code=400, detail="user_job_title cannot be empty")
 
     # make sure that the model is valid
     if model not in Model.__members__.values():
-        return HTTPException(status_code=400, detail="Invalid model")
+        raise HTTPException(status_code=400, detail="Invalid model")
 
     # clean up the user input
     user_job_title = job_title.strip()
@@ -60,13 +60,20 @@ async def get_private_job_title(
     # -- validate user_job_title -- #
     # if user_job_title is empty
     if user_job_title == "":
-        return HTTPException(status_code=400, detail="user_job_title cannot be empty")
+        raise HTTPException(status_code=400, detail="user_job_title cannot be empty")
 
     # if user_job_title length is less than 5
-    if len(user_job_title) < 5:
-        return HTTPException(
+    if len(user_job_title) < 5 or len(user_job_title) > 60:
+        raise HTTPException(
             status_code=400,
-            detail="user_job_title length is too short! (min length is 3)",
+            detail="Invalid user_job_title length, it should be between 5 and 60 characters",
+        )
+
+    # -- validate top_n -- #
+    if top_n < 1 or top_n > 15:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid top_n, it should be between 1 and 15",
         )
 
     # correct spelling
