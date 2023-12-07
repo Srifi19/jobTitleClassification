@@ -108,5 +108,42 @@ class _GptAgent:
                 cost=callback.total_cost,
             )
 
+    def generate_path_requirements(
+        self,
+        path: str,
+        hard_skills: list[str],
+        soft_skills: list[str],
+        education: list[str],
+        experience: list[str],
+    ) -> GptAgentResponse:
+        LOGGER.log(
+            f"Generating path requirements using GPT agent...\n't - Hard Skills: {hard_skills}\n\t - Soft Skills: {soft_skills}",
+            level=LoggingLevels.INFO,
+        )
+        # format the input
+        model_input = PATHS_REQUIREMENTS_GENERATION_PROMPT.format_prompt(
+            path=path,
+            hard_skills=hard_skills,
+            soft_skills=soft_skills,
+            education=education,
+            experience=experience,
+        )
+        # OPENAI Callback to track the cost
+        with get_openai_callback() as callback:
+            # run the chain
+            response = PATHS_REQUIREMENTS_GENERATION_OUTPUT_PARSER.parse(
+                self._chat_model.call_as_llm(model_input.to_string())
+            )
+            LOGGER.log(
+                f"User: {model_input.to_string()}\nAI: {response}",
+                level=LoggingLevels.INFO,
+            )
+            return GptAgentResponse(
+                response=response,
+                input_tokens=callback.prompt_tokens,
+                output_tokens=callback.completion_tokens,
+                cost=callback.total_cost,
+            )
+
 
 GPT_AGENT = _GptAgent()

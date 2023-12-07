@@ -36,3 +36,17 @@ class GetSuggestedCareerPathsResponse(BaseModel):
     suggested_paths: list[SuggestedCareerPath]
     execution_time: float
     cost: dict
+
+
+# =================================================== #
+# ---------- Path requirements suggestions ---------- #
+# =================================================== #
+class RequiredSkill(BaseModel):
+    skill: str
+    description: str
+
+
+class PathRequirementsResponse(BaseModel):
+    required_skills: list[RequiredSkill]
+    execution_time: float
+    cost: dict

@@ -2,13 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from time import time
 
-from _schemas import (
-    PrivateJobTitle,
-    GetPrivateJobTitleResponse,
-    GetSuggestedCareerPathsResponse,
-    SuggestedCareerPath,
-    Model,
-)
+from _schemas import *
 
 # all models
 from agents.faiss_agent import FAISS_AGENT
@@ -48,6 +42,7 @@ async def get_suggested_career_path(
     # start timer
     start_time = time()
 
+    # --- validate required params --- #
     # check entered hard skills
     if len(hard_skills) in [0, 30]:
         raise HTTPException(
@@ -84,6 +79,62 @@ async def get_suggested_career_path(
             "prompt_tokens": suggested_paths.input_tokens,
             "completion_tokens": suggested_paths.output_tokens,
             "cost": suggested_paths.cost,
+        },
+    )
+
+
+@app.post(
+    "/path-requirements",
+    response_model=PathRequirementsResponse,
+)
+async def get_path_requirements(
+    path: str,
+    hard_skills: list[str],
+    soft_skills: list[str],
+    education: list[str],
+    experience: list[str],
+):
+    # start timer
+    start_time = time()
+
+    # --- validate required params --- #
+    # check entered hard skills
+    if len(hard_skills) in [0, 30]:
+        raise HTTPException(
+            status_code=400, detail="hard_skills cannot be empty or more than 30"
+        )
+
+    # check entered soft skills
+    if len(soft_skills) in [0, 15]:
+        raise HTTPException(
+            status_code=400, detail="soft_skills cannot be empty or more than 15"
+        )
+
+    # get suggested career paths
+    gpt_response = GPT_AGENT.generate_path_requirements(
+        path=path,
+        hard_skills=hard_skills,
+        soft_skills=soft_skills,
+        education=education,
+        experience=experience,
+    )
+
+    # return the results
+    results = [
+        RequiredSkill(
+            skill=required_skill.skill,
+            description=required_skill.description,
+        )
+        for required_skill in gpt_response.response.required_fields
+    ]
+
+    return PathRequirementsResponse(
+        required_skills=results,
+        execution_time=time() - start_time,
+        cost={
+            "prompt_tokens": gpt_response.input_tokens,
+            "completion_tokens": gpt_response.output_tokens,
+            "cost": gpt_response.cost,
         },
     )
 

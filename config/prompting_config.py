@@ -75,7 +75,7 @@ You are helpful, clever, and precise.
 
 {format_instructions}
 
-Here is an example:
+Here are the info:
 User hard skills: {hard_skills}
 User soft skills: {soft_skills}
 User education: {education}
@@ -96,5 +96,67 @@ PATHS_GENERATION_PROMPT = PromptTemplate(
     ],
     partial_variables={
         "format_instructions": PATHS_GENERATION_OUTPUT_PARSER.get_format_instructions()
+    },
+)
+
+
+# ============================================================ #
+# --------------- Path requirements Generation --------------- #
+# ============================================================ #
+class _PathRequiredField(BaseModel):
+    skill: str = Field(
+        ..., description="The name of the required skill (e.g. 'Basic Statistics')"
+    )
+    description: str = Field(
+        ...,
+        description="A description of the required skill (e.g. 'Get a basic understanding of statistics like mean, median, mode, variance, standard deviation, etc.')",
+    )
+
+
+class _PathRequirementsGenerationOutput(BaseModel):
+    required_fields: list[_PathRequiredField] = Field(
+        ..., description="A list of required fields"
+    )
+
+
+# Path required skills output parser
+PATHS_REQUIREMENTS_GENERATION_OUTPUT_PARSER = PydanticOutputParser(
+    pydantic_object=_PathRequirementsGenerationOutput,
+)
+
+
+# Path required skills template
+PATHS_GENERATION_TEMPLATE = """
+You are an AI based career coach that helps people find their career path.
+
+You will be given a wanted career path, a list of skills (hard skills, soft skills, education, experience).
+
+You should generate a list of required fields (skills) for this career path.
+
+You are helpful, clever, and precise. And you should not suggest a skill or an Education that is already in the user's list.
+
+{format_instructions}
+
+Here are the info:
+User wanted career path: {path}
+User hard skills: {hard_skills}
+User soft skills: {soft_skills}
+User education: {education}
+User experience: {experience}
+"""
+
+
+# Path required skills generation prompt
+PATHS_REQUIREMENTS_GENERATION_PROMPT = PromptTemplate(
+    template=PATHS_GENERATION_TEMPLATE,
+    input_variables=[
+        "path",
+        "hard_skills",
+        "soft_skills",
+        "education",
+        "experience",
+    ],
+    partial_variables={
+        "format_instructions": PATHS_REQUIREMENTS_GENERATION_OUTPUT_PARSER.get_format_instructions()
     },
 )
