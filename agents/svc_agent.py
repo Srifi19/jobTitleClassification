@@ -96,11 +96,7 @@ class _SvcAgent:
         # predict the label
         predicted_labels = self._model.predict(title_vectorized)
 
-        return (
-            predicted_labels[:top_n]
-            if len(predicted_labels) > top_n
-            else predicted_labels
-        )
+        return predicted_labels[0]
 
 
 SVC_AGENT = _SvcAgent()

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from time import time
 
 from _schemas import (
+    PrivateJobTitle,
     GetPrivateJobTitleResponse,
     GetSuggestedCareerPathsResponse,
     SuggestedCareerPath,
@@ -40,6 +41,9 @@ app.add_middleware(
 async def get_suggested_career_path(
     hard_skills: list[str],
     soft_skills: list[str],
+    education: list[str],
+    experience: list[str],
+    ignore_titles: list[str],
 ):
     # start timer
     start_time = time()
@@ -60,6 +64,9 @@ async def get_suggested_career_path(
     suggested_paths = GPT_AGENT.generate_recommended_paths(
         hard_skills=hard_skills,
         soft_skills=soft_skills,
+        education=education,
+        experience=experience,
+        ignore_titles=ignore_titles,
     )
 
     # return the results
@@ -83,7 +90,7 @@ async def get_suggested_career_path(
 
 @app.get(
     "/private-job-title",
-    response_model=list[GetPrivateJobTitleResponse],
+    response_model=GetPrivateJobTitleResponse,
 )
 async def get_private_job_title(
     job_title: str,
@@ -142,39 +149,42 @@ async def get_private_job_title(
             top_n=top_n,
         )
 
-        # return the results
-        return [
-            GetPrivateJobTitleResponse(
-                formatted_input=user_job_title,
-                job_title=option,
-                score=score,
-                model=model,
-                execution_time=time() - start_time,
-            )
-            for option, score in faiss_results
-        ]
+        return GetPrivateJobTitleResponse(
+            job_titles=[
+                PrivateJobTitle(
+                    job_title=option,
+                    score=score,
+                )
+                for option, score in faiss_results
+            ],
+            formatted_input=user_job_title,
+            execution_time=time() - start_time,
+            model=model,
+            cost=None,
+        )
 
     # =============================== #
     # ---------- SVC Model ---------- #
     # =============================== #
     if model == Model.SVC:
         # predict the job title
-        predicted_job_titles = SVC_AGENT.predict_job_title(
+        predicted_job_title = SVC_AGENT.predict_job_title(
             user_job_title,
             top_n=top_n,
         )
 
-        # return the results
-        return [
-            GetPrivateJobTitleResponse(
-                formatted_input=user_job_title,
-                job_title=option,
-                score=None,
-                model=model,
-                execution_time=time() - start_time,
-            )
-            for option in predicted_job_titles
-        ]
+        return GetPrivateJobTitleResponse(
+            job_titles=[
+                PrivateJobTitle(
+                    job_title=predicted_job_title,
+                    score=None,
+                )
+            ],
+            formatted_input=user_job_title,
+            execution_time=time() - start_time,
+            model=model,
+            cost=None,
+        )
 
     # ================================= #
     # ---------- GPT Model ------------ #
@@ -183,17 +193,20 @@ async def get_private_job_title(
         user_job_title,
         top_n=top_n,
     )
-    return [
-        GetPrivateJobTitleResponse(
-            formatted_input=user_job_title,
-            job_title=gpt_response.response,
-            score=None,
-            model=model,
-            execution_time=time() - start_time,
-            cost={
-                "prompt_tokens": gpt_response.input_tokens,
-                "completion_tokens": gpt_response.output_tokens,
-                "cost": gpt_response.cost,
-            },
-        )
-    ]
+    return GetPrivateJobTitleResponse(
+        job_titles=[
+            PrivateJobTitle(
+                formatted_input=user_job_title,
+                job_title=gpt_response.response,
+                score=None,
+            )
+        ],
+        formatted_input=user_job_title,
+        execution_time=time() - start_time,
+        model=model,
+        cost={
+            "prompt_tokens": gpt_response.input_tokens,
+            "completion_tokens": gpt_response.output_tokens,
+            "cost": gpt_response.cost,
+        },
+    )

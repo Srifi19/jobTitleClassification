@@ -75,6 +75,9 @@ class _GptAgent:
         self,
         hard_skills: list[str],
         soft_skills: list[str],
+        education: list[str],
+        experience: list[str],
+        ignore_titles: list[str],
     ) -> GptAgentResponse:
         LOGGER.log(
             f"Generating recommended paths using GPT agent...\n't - Hard Skills: {hard_skills}\n\t - Soft Skills: {soft_skills}",
@@ -84,6 +87,9 @@ class _GptAgent:
         model_input = PATHS_GENERATION_PROMPT.format_prompt(
             hard_skills=hard_skills,
             soft_skills=soft_skills,
+            education=education,
+            experience=experience,
+            ignore_titles=ignore_titles,
         )
         # OPENAI Callback to track the cost
         with get_openai_callback() as callback:

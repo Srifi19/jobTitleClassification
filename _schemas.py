@@ -2,21 +2,31 @@ from pydantic import BaseModel
 from enum import Enum
 
 
+# ========================================== #
+# ---------- Job Title Prediction ---------- #
+# ========================================== #
 class Model(str, Enum):
     FAISS = "faiss"
     GPT = "gpt"
     SVC = "svc"
 
 
-class GetPrivateJobTitleResponse(BaseModel):
-    formatted_input: str
+class PrivateJobTitle(BaseModel):
     job_title: str
     score: float | None
+
+
+class GetPrivateJobTitleResponse(BaseModel):
+    job_titles: list[PrivateJobTitle]
+    formatted_input: str
     execution_time: float
     model: Model
     cost: dict | None = None
 
 
+# ============================================== #
+# ---------- Career Paths Suggestions ---------- #
+# ============================================== #
 class SuggestedCareerPath(BaseModel):
     path: str
     reasons: list[str]

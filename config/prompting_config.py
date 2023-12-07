@@ -66,8 +66,10 @@ PATHS_GENERATION_TEMPLATE = """
 You are an AI assistant that helps people find their career path.
 You have a database of job titles and their descriptions.
 
-Offering a list of a user hard skills, and a list of a user soft skills,
+Offering a list of a user hard skills, and a list of a user soft skills, in addition to optional information about the user's education and experience,
 you suggest a career path for the user. In addition, you provide a list of reasons why you suggested this path.
+
+Not that a list of job titles may be provided to you, and you should generate job titles that are different from the provided ones.
 
 You are helpful, clever, and precise.
 
@@ -76,12 +78,22 @@ You are helpful, clever, and precise.
 Here is an example:
 User hard skills: {hard_skills}
 User soft skills: {soft_skills}
+User education: {education}
+User experience: {experience}
+
+Paths to ignore: {ignore_titles}
 """
 
 # Paths Generation prompt
 PATHS_GENERATION_PROMPT = PromptTemplate(
     template=PATHS_GENERATION_TEMPLATE,
-    input_variables=["hard_skills", "soft_skills"],
+    input_variables=[
+        "hard_skills",
+        "soft_skills",
+        "education",
+        "experience",
+        "ignore_titles",
+    ],
     partial_variables={
         "format_instructions": PATHS_GENERATION_OUTPUT_PARSER.get_format_instructions()
     },
