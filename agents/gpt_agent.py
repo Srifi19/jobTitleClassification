@@ -75,6 +75,7 @@ class _GptAgent:
         self,
         hard_skills: list[str],
         soft_skills: list[str],
+        tools: list[str],
         education: list[str],
         experience: list[str],
         ignore_titles: list[str],
@@ -89,6 +90,7 @@ class _GptAgent:
             soft_skills=soft_skills,
             education=education,
             experience=experience,
+            tools = tools,
             ignore_titles=ignore_titles,
         )
         # OPENAI Callback to track the cost
@@ -113,6 +115,7 @@ class _GptAgent:
         path: str,
         hard_skills: list[str],
         soft_skills: list[str],
+        tools: list[str],
         education: list[str],
         experience: list[str],
     ) -> GptAgentResponse:
@@ -126,6 +129,7 @@ class _GptAgent:
             hard_skills=hard_skills,
             soft_skills=soft_skills,
             education=education,
+            tools = tools,
             experience=experience,
         )
         # OPENAI Callback to track the cost

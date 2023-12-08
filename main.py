@@ -35,6 +35,7 @@ app.add_middleware(
 async def get_suggested_career_path(
     hard_skills: list[str],
     soft_skills: list[str],
+    tools: list[str],
     education: list[str],
     experience: list[str],
     ignore_titles: list[str],
@@ -59,6 +60,7 @@ async def get_suggested_career_path(
     suggested_paths = GPT_AGENT.generate_recommended_paths(
         hard_skills=hard_skills,
         soft_skills=soft_skills,
+        tools=tools,
         education=education,
         experience=experience,
         ignore_titles=ignore_titles,
@@ -91,6 +93,7 @@ async def get_path_requirements(
     path: str,
     hard_skills: list[str],
     soft_skills: list[str],
+    tools: list[str],
     education: list[str],
     experience: list[str],
 ):
@@ -114,6 +117,7 @@ async def get_path_requirements(
     gpt_response = GPT_AGENT.generate_path_requirements(
         path=path,
         hard_skills=hard_skills,
+        tools=tools,
         soft_skills=soft_skills,
         education=education,
         experience=experience,
@@ -128,12 +132,19 @@ async def get_path_requirements(
                 )
                 for skill in data.required_soft_skills 
             ],
+            tools = [
+                RequiredSkill(
+                    skill=tool.tool,
+                    description=tool.description
+                )
+                for tool in data.tools 
+            ],
             hard_skills=[
                 RequiredSkill(
                     skill=skill.skill,
                     description=skill.description
                 )
-                for skill in data.required_hard_skills
+                for skill in data.required_hard_skills 
             ],
             education=[
                 RequiredSkill(
