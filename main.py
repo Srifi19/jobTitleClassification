@@ -118,18 +118,38 @@ async def get_path_requirements(
         education=education,
         experience=experience,
     )
-
-    # return the results
-    results = [
-        RequiredSkill(
-            skill=required_skill.skill,
-            description=required_skill.description,
-        )
-        for required_skill in gpt_response.response.required_fields
-    ]
-
+    data =  gpt_response.response
+ 
     return PathRequirementsResponse(
-        required_skills=results,
+            soft_skills=[
+                RequiredSkill(
+                    skill=skill.skill,
+                    description=skill.description
+                )
+                for skill in data.required_soft_skills 
+            ],
+            hard_skills=[
+                RequiredSkill(
+                    skill=skill.skill,
+                    description=skill.description
+                )
+                for skill in data.required_hard_skills
+            ],
+            education=[
+                RequiredSkill(
+                    skill=education.education,
+                    description=education.description
+                )
+                for education in data.Education
+            ],
+            experience=[
+                RequiredSkill(
+                    skill=experience.experience,
+                    description=experience.description
+                )
+                for experience in data.Experience
+            ],
+        
         execution_time=time() - start_time,
         cost={
             "prompt_tokens": gpt_response.input_tokens,

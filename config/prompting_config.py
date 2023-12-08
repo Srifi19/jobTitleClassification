@@ -66,10 +66,10 @@ PATHS_GENERATION_TEMPLATE = """
 You are an AI assistant that helps people find their career path.
 You have a database of job titles and their descriptions.
 
-Offering a list of a user hard skills, and a list of a user soft skills, in addition to optional information about the user's education and experience,
-you suggest a career path for the user. In addition, you provide a list of reasons why you suggested this path.
+Offering a list of user hard skills and a list of user soft skills, in addition to optional information about the user's education and experience,
+you suggest a cutting-edge career path for the user. In addition, you provide a list of reasons why you suggested this path.
 
-Not that a list of job titles may be provided to you, and you should generate job titles that are different from the provided ones.
+Note that a list of job titles may be provided to you, and you should generate job titles that are different from the provided ones.
 
 You are helpful, clever, and precise.
 
@@ -103,7 +103,7 @@ PATHS_GENERATION_PROMPT = PromptTemplate(
 # ============================================================ #
 # --------------- Path requirements Generation --------------- #
 # ============================================================ #
-class _PathRequiredField(BaseModel):
+class _skillRequired(BaseModel):
     skill: str = Field(
         ..., description="The name of the required skill (e.g. 'Basic Statistics')"
     )
@@ -111,11 +111,41 @@ class _PathRequiredField(BaseModel):
         ...,
         description="A description of the required skill (e.g. 'Get a basic understanding of statistics like mean, median, mode, variance, standard deviation, etc.')",
     )
+    
+class _educationRequired(BaseModel):
+    education: str = Field(
+        ..., description="The required education, including the name and type of degree" 
+    )
+    description: str = Field(
+        ..., 
+        description="A description of the required education and what one may learn"
+    )
+
+class _experienceRequired(BaseModel):
+    experience: str = Field(
+        ..., description="The required experience, specifying the position and type of experiences" 
+    )
+    description: str = Field(
+        ..., 
+        description="A description of the required experience and what one may learn"
+    )
+    
+
+    
 
 
 class _PathRequirementsGenerationOutput(BaseModel):
-    required_fields: list[_PathRequiredField] = Field(
-        ..., description="A list of required fields"
+    required_hard_skills: list[_skillRequired] = Field(
+        ..., description="A list of required  hard skills"
+    )
+    required_soft_skills: list[_skillRequired] = Field(
+        ..., description="A list of required soft skills"
+    )
+    Education: list[_educationRequired] = Field(
+        ..., description="A list of required educations"
+    )
+    Experience: list[_experienceRequired] = Field(
+        ..., description="A list of required experiences"
     )
 
 
@@ -127,22 +157,17 @@ PATHS_REQUIREMENTS_GENERATION_OUTPUT_PARSER = PydanticOutputParser(
 
 # Path required skills template
 PATHS_GENERATION_TEMPLATE = """
-You are an AI based career coach that helps people find their career path.
-
-You will be given a wanted career path, a list of skills (hard skills, soft skills, education, experience).
-
-You should generate a list of required fields (skills) for this career path.
-
-You are helpful, clever, and precise. And you should not suggest a skill or an Education that is already in the user's list.
-
-{format_instructions}
-
-Here are the info:
 User wanted career path: {path}
 User hard skills: {hard_skills}
 User soft skills: {soft_skills}
 User education: {education}
 User experience: {experience}
+
+Given the user's desired career path in {path} and their existing set of skills, education, and experience, your task is to generate a list of additional required fields (skills, education, experience). Be helpful, clever, and precise. Avoid suggesting a skill or education that is already in the user's list, and ensure there are no repeated skills.
+
+Provide recommendations for necessary skills and experiences, taking into account the user's current qualifications. Additionally, ensure that education is only suggested if it is not already included in the user's provided education. For experience, suggest relevant and sensible additions.
+
+{format_instructions}
 """
 
 
