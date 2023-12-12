@@ -10,6 +10,7 @@ from langchain.prompts import PromptTemplate, FewShotPromptTemplate
 from .faiss_agent import FAISS_AGENT
 
 from helpers.logger import LOGGER, LoggingLevels
+from tools.courses_scraper import CoursesScraper, ScrapedCourse
 from config.prompting_config import *
 
 
@@ -26,6 +27,8 @@ class _GptAgent:
         LOGGER.log("Initializing GPT agent...", level=LoggingLevels.INFO)
         # chat model
         self._chat_model = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+        # courses scraper for course suggestion method
+        self._courses_scraper = CoursesScraper(headless=False)
         # example prompt
         self._example_prompt = PromptTemplate(
             input_variables=["query", "answer"], template=EXAMPLE_TEMPLATE
@@ -90,7 +93,7 @@ class _GptAgent:
             soft_skills=soft_skills,
             education=education,
             experience=experience,
-            tools = tools,
+            tools=tools,
             ignore_titles=ignore_titles,
         )
         # OPENAI Callback to track the cost
@@ -129,7 +132,7 @@ class _GptAgent:
             hard_skills=hard_skills,
             soft_skills=soft_skills,
             education=education,
-            tools = tools,
+            tools=tools,
             experience=experience,
         )
         # OPENAI Callback to track the cost
@@ -144,6 +147,53 @@ class _GptAgent:
             )
             return GptAgentResponse(
                 response=response,
+                input_tokens=callback.prompt_tokens,
+                output_tokens=callback.completion_tokens,
+                cost=callback.total_cost,
+            )
+
+    def recommend_courses(
+        self,
+        topic: str,
+        hard_skills: list[str],
+        tools: list[str],
+    ):
+        # get top available courses from ClassCentral
+        available_courses = self._courses_scraper.get_top_courses(topic=topic)
+        # generate json-like object for available course
+        available_courses_dict = [
+            {"id": i, "title": course.title, "description": course.description}
+            for i, course in enumerate(available_courses)
+        ]
+
+        # format the input
+        model_input = SUGGESTED_COURSE_PROMPT.format_prompt(
+            courses=available_courses_dict,
+            career_goal=topic,
+            hard_skills=hard_skills,
+            tools=tools,
+        )
+
+        # OPENAI Callback to track the cost
+        with get_openai_callback() as callback:
+            # run the chain
+            response = SUGGESTED_COURSE_OUTPUT_PARSER.parse(
+                self._chat_model.call_as_llm(model_input.to_string())
+            )
+            response_list = [
+                {
+                    "title": available_courses_dict[r.id].title,
+                    "description": available_courses_dict[r.id].description,
+                    "reason": r.reason,
+                }
+                for r in response
+            ]
+            LOGGER.log(
+                f"User: {model_input.to_string()}\nAI: {response}",
+                level=LoggingLevels.INFO,
+            )
+            return GptAgentResponse(
+                response=response_list,
                 input_tokens=callback.prompt_tokens,
                 output_tokens=callback.completion_tokens,
                 cost=callback.total_cost,

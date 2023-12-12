@@ -52,3 +52,17 @@ class PathRequirementsResponse(BaseModel):
     experience:list[RequiredSkill]
     execution_time: float
     cost: dict
+    
+
+# ========================================= #
+# ---------- Courses Suggestions ---------- #
+# ========================================= #
+class SuggestedCourse(BaseModel):
+    title:str
+    description:str
+    reason:str
+    
+class SuggestedCoursesResponse(BaseModel):
+    courses:list[SuggestedCourse]
+    execution_time: float
+    cost: dict

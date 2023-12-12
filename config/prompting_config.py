@@ -143,10 +143,6 @@ class _toolRequired(BaseModel):
     )
     
     
-
-    
-
-
 class _PathRequirementsGenerationOutput(BaseModel):
     required_hard_skills: list[_skillRequired] = Field(
         ..., description="A list of required hard skills"
@@ -181,7 +177,7 @@ Provide recommendations for necessary skills, education,tools and experiences, t
 
 {format_instructions}
 
-These Are the given data:
+These Are the given info:
 User wanted career path: {path}
 User hard skills: {hard_skills}
 User soft skills: {soft_skills}
@@ -204,5 +200,60 @@ PATHS_REQUIREMENTS_GENERATION_PROMPT = PromptTemplate(
     ],
     partial_variables={
         "format_instructions": PATHS_REQUIREMENTS_GENERATION_OUTPUT_PARSER.get_format_instructions()
+    },
+)
+
+
+
+# ================================================== #
+# --------------- Courses Suggestion --------------- #
+# ================================================== #
+class _SuggestedCourse(BaseModel):
+    course_id : str = Field(
+        ..., description="The id of the suggested course"
+    )
+    suggestion_reason : str = Field(
+        ..., description="The reason why this course is suggested"
+    )
+    
+class _CoursesSuggestionResponse(BaseModel):
+    suggested_courses: list[_SuggestedCourse] = Field(
+        ..., description="A list of suggested courses"
+    )
+    
+# suggested course output parser
+SUGGESTED_COURSE_OUTPUT_PARSER = PydanticOutputParser(
+    pydantic_object=_CoursesSuggestionResponse,
+)
+
+# suggested course template
+SUGGESTED_COURSE_TEMPLATE = """
+You are an AI assistant that helps people choose the most suitable courses for them.
+You will be given a list of courses and you should choose the most suitable courses for the user.
+In addition, and to know the user's goal, skills, and knowledge, you will be given the career goal, a list of user hard skills, and list of user tools. 
+
+You are helpful, clever, and precise.
+
+{format_instructions}
+
+These Are the given info:
+List of courses: {courses}
+User career goal: {career_goal}
+User hard skills: {hard_skills}
+User tools: {tools}
+"""
+
+
+# suggested course generation prompt
+SUGGESTED_COURSE_PROMPT = PromptTemplate(
+    template=SUGGESTED_COURSE_TEMPLATE,
+    input_variables=[
+        "courses",
+        "career_goal",
+        "hard_skills",
+        "tools",
+    ],
+    partial_variables={
+        "format_instructions": SUGGESTED_COURSE_OUTPUT_PARSER.get_format_instructions()
     },
 )

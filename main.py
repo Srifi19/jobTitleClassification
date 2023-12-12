@@ -122,51 +122,84 @@ async def get_path_requirements(
         education=education,
         experience=experience,
     )
-    data =  gpt_response.response
- 
+    data = gpt_response.response
+
     return PathRequirementsResponse(
-            soft_skills=[
-                RequiredSkill(
-                    skill=skill.skill,
-                    description=skill.description
-                )
-                for skill in data.required_soft_skills 
-            ],
-            tools = [
-                RequiredSkill(
-                    skill=tool.tool,
-                    description=tool.description
-                )
-                for tool in data.tools 
-            ],
-            hard_skills=[
-                RequiredSkill(
-                    skill=skill.skill,
-                    description=skill.description
-                )
-                for skill in data.required_hard_skills 
-            ],
-            education=[
-                RequiredSkill(
-                    skill=education.education,
-                    description=education.description
-                )
-                for education in data.Education
-            ],
-            experience=[
-                RequiredSkill(
-                    skill=experience.experience,
-                    description=experience.description
-                )
-                for experience in data.Experience
-            ],
-        
+        soft_skills=[
+            RequiredSkill(skill=skill.skill, description=skill.description)
+            for skill in data.required_soft_skills
+        ],
+        tools=[
+            RequiredSkill(skill=tool.tool, description=tool.description)
+            for tool in data.tools
+        ],
+        hard_skills=[
+            RequiredSkill(skill=skill.skill, description=skill.description)
+            for skill in data.required_hard_skills
+        ],
+        education=[
+            RequiredSkill(skill=education.education, description=education.description)
+            for education in data.Education
+        ],
+        experience=[
+            RequiredSkill(
+                skill=experience.experience, description=experience.description
+            )
+            for experience in data.Experience
+        ],
         execution_time=time() - start_time,
         cost={
             "prompt_tokens": gpt_response.input_tokens,
             "completion_tokens": gpt_response.output_tokens,
             "cost": gpt_response.cost,
         },
+    )
+
+
+@app.post("/suggested-courses", response_model=SuggestedCoursesResponse)
+async def get_suggested_courses(
+    career_title: str,
+    hard_skills: list[str],
+    tools: list[str],
+):
+    # start timer
+    start_time = time()
+
+    # check entered career title
+    if career_title.strip() == "":
+        raise HTTPException(status_code=400, detail="user_job_title cannot be empty")
+
+    # validate hard_skills list
+    if 15 < len(hard_skills) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Hard skills list cannot be empty or contain more than 15 element",
+        )
+
+    # validate tools list
+    if 15 < len(tools) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Tools list cannot be empty or contain more than 15 element",
+        )
+
+    # get GPT response
+    gpt_response = GPT_AGENT.recommend_courses(
+        topic=career_title, hard_skills=hard_skills, tools=tools
+    )
+
+    # return the output
+    return SuggestedCoursesResponse(
+        courses=[
+            SuggestedCourse(s["title"], s["description"], s["reason"])
+            for s in gpt_response.response
+        ],
+        execution_time=time() - start_time,
+        cost={
+            "prompt_tokens": gpt_response.input_tokens,
+            "completion_tokens": gpt_response.output_tokens,
+            "cost": gpt_response.cost,
+        }
     )
 
 
