@@ -113,36 +113,37 @@ class _skillRequired(BaseModel):
         ...,
         description="A description of the required skill (e.g. 'Get a basic understanding of statistics like mean, median, mode, variance, standard deviation, etc.')",
     )
-    
+
+
 class _educationRequired(BaseModel):
     education: str = Field(
-        ..., description="The required education, including the name and type of degree" 
+        ..., description="The required education, including the name and type of degree"
     )
     description: str = Field(
-        ..., 
-        description="A description of the required education and what one may learn"
+        ...,
+        description="A description of the required education and what one may learn",
     )
+
 
 class _experienceRequired(BaseModel):
     experience: str = Field(
-        ..., description="The required experience, specifying the position and type of experiences" 
+        ...,
+        description="The required experience, specifying the position and type of experiences",
     )
     description: str = Field(
-        ..., 
-        description="A description of the required experience and what one may learn"
+        ...,
+        description="A description of the required experience and what one may learn",
     )
 
 
 class _toolRequired(BaseModel):
-    tool: str = Field(
-        ..., description="The name of the required tool (e.g. 'Java')"
-    )
+    tool: str = Field(..., description="The name of the required tool (e.g. 'Java')")
     description: str = Field(
         ...,
-        description="A description of the required tool Java (e.g., 'Syntax, Concepts etc...')"
+        description="A description of the required tool Java (e.g., 'Syntax, Concepts etc...')",
     )
-    
-    
+
+
 class _PathRequirementsGenerationOutput(BaseModel):
     required_hard_skills: list[_skillRequired] = Field(
         ..., description="A list of required hard skills"
@@ -150,9 +151,7 @@ class _PathRequirementsGenerationOutput(BaseModel):
     required_soft_skills: list[_skillRequired] = Field(
         ..., description="A list of required soft skills"
     )
-    tools: list[_toolRequired] = Field(
-        ..., description="A list of required tools"
-    )
+    tools: list[_toolRequired] = Field(..., description="A list of required tools")
     Education: list[_educationRequired] = Field(
         ..., description="A list of required educations"
     )
@@ -204,23 +203,22 @@ PATHS_REQUIREMENTS_GENERATION_PROMPT = PromptTemplate(
 )
 
 
-
 # ================================================== #
 # --------------- Courses Suggestion --------------- #
 # ================================================== #
 class _SuggestedCourse(BaseModel):
-    course_id : str = Field(
-        ..., description="The id of the suggested course"
-    )
-    suggestion_reason : str = Field(
+    course_id: str = Field(..., description="The id of the suggested course")
+    suggestion_reason: str = Field(
         ..., description="The reason why this course is suggested"
     )
-    
+
+
 class _CoursesSuggestionResponse(BaseModel):
     suggested_courses: list[_SuggestedCourse] = Field(
         ..., description="A list of suggested courses"
     )
-    
+
+
 # suggested course output parser
 SUGGESTED_COURSE_OUTPUT_PARSER = PydanticOutputParser(
     pydantic_object=_CoursesSuggestionResponse,
@@ -229,10 +227,10 @@ SUGGESTED_COURSE_OUTPUT_PARSER = PydanticOutputParser(
 # suggested course template
 SUGGESTED_COURSE_TEMPLATE = """
 You are an AI assistant that helps people choose the most suitable courses for them.
-You will be given a list of courses and you should choose the most suitable courses for the user.
-In addition, and to know the user's goal, skills, and knowledge, you will be given the career goal, a list of user hard skills, and list of user tools. 
+You will be given a list of courses and you should choose only the most suitable courses for the user.
+To help you decide which courses be suit the user, you will be given the career goal, a list of user hard skills, and list of user tools. 
 
-You are helpful, clever, and precise.
+You are helpful, clever, and precise. And you should be able to choose only the most suitable courses for the user with maximum of 3 courses
 
 {format_instructions}
 

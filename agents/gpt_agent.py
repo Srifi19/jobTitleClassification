@@ -179,12 +179,14 @@ class _GptAgent:
             # run the chain
             response = SUGGESTED_COURSE_OUTPUT_PARSER.parse(
                 self._chat_model.call_as_llm(model_input.to_string())
-            )
+            ).suggested_courses
+            print(f"{response = }")
             response_list = [
                 {
-                    "title": available_courses_dict[r.id].title,
-                    "description": available_courses_dict[r.id].description,
-                    "reason": r.reason,
+                    "title": available_courses[int(r.course_id)].title,
+                    "description": available_courses[int(r.course_id)].description,
+                    "link": available_courses[int(r.course_id)].url,
+                    "reason": r.suggestion_reason,
                 }
                 for r in response
             ]

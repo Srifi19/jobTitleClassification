@@ -158,15 +158,15 @@ async def get_path_requirements(
 
 @app.post("/suggested-courses", response_model=SuggestedCoursesResponse)
 async def get_suggested_courses(
-    career_title: str,
+    needed_skill: str,
     hard_skills: list[str],
     tools: list[str],
 ):
     # start timer
     start_time = time()
 
-    # check entered career title
-    if career_title.strip() == "":
+    # check entered needed_skill
+    if needed_skill.strip() == "":
         raise HTTPException(status_code=400, detail="user_job_title cannot be empty")
 
     # validate hard_skills list
@@ -185,13 +185,18 @@ async def get_suggested_courses(
 
     # get GPT response
     gpt_response = GPT_AGENT.recommend_courses(
-        topic=career_title, hard_skills=hard_skills, tools=tools
+        topic=needed_skill, hard_skills=hard_skills, tools=tools
     )
 
     # return the output
     return SuggestedCoursesResponse(
         courses=[
-            SuggestedCourse(s["title"], s["description"], s["reason"])
+            SuggestedCourse(
+                title=s["title"],
+                description=s["description"],
+                reason=s["reason"],
+                link=s["link"],
+            )
             for s in gpt_response.response
         ],
         execution_time=time() - start_time,
@@ -199,7 +204,7 @@ async def get_suggested_courses(
             "prompt_tokens": gpt_response.input_tokens,
             "completion_tokens": gpt_response.output_tokens,
             "cost": gpt_response.cost,
-        }
+        },
     )
 
 

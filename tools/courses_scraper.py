@@ -20,7 +20,7 @@ class CoursesScraper:
     def __init__(self, headless: bool = False) -> None:
         LOGGER.log("Initializing Courses Scraper...", level=LoggingLevels.INFO)
         self._HEADLESS = headless
-        self._driver = self._init_driver()
+        self._driver = None
 
     def _init_driver(self):
         self._driver = Chrome(
@@ -34,12 +34,13 @@ class CoursesScraper:
             self._driver.get(_format_class_central_url(topic))
         except:
             self._init_driver()
-            return self.get_top_courses()
+            return self.get_top_courses(topic=topic)
         # get the page source
         page_source = self._driver.page_source
         # parse page source to extract top courses
+        self._driver.close()
         return _parse_class_central_page(page_source)
-    
+
     def reset_driver(self):
         try:
             # close current driver
@@ -49,7 +50,6 @@ class CoursesScraper:
         finally:
             # re-init driver
             self._init_driver()
-        
 
 
 # ======================================= #
@@ -136,10 +136,10 @@ def _parse_class_central_page(web_page: str) -> list[ScrapedCourse]:
                 ScrapedCourse(
                     title=title,
                     description=description,
-                    href=f"https://www.classcentral.com{href}",
+                    url=f"https://www.classcentral.com{href}",
                 )
             )
-        except:
+        except Exception as e:
             continue
 
     return results

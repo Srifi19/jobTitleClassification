@@ -44,25 +44,28 @@ class GetSuggestedCareerPathsResponse(BaseModel):
 class RequiredSkill(BaseModel):
     skill: str
     description: str
- 
+
+
 class PathRequirementsResponse(BaseModel):
-    soft_skills:list[RequiredSkill]
-    hard_skills:list[RequiredSkill]
-    education:list[RequiredSkill]
-    experience:list[RequiredSkill]
+    soft_skills: list[RequiredSkill]
+    hard_skills: list[RequiredSkill]
+    education: list[RequiredSkill]
+    experience: list[RequiredSkill]
     execution_time: float
     cost: dict
-    
+
 
 # ========================================= #
 # ---------- Courses Suggestions ---------- #
 # ========================================= #
 class SuggestedCourse(BaseModel):
-    title:str
-    description:str
-    reason:str
-    
+    title: str
+    description: str
+    reason: str
+    link: str
+
+
 class SuggestedCoursesResponse(BaseModel):
-    courses:list[SuggestedCourse]
+    courses: list[SuggestedCourse]
     execution_time: float
     cost: dict
