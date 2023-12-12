@@ -207,7 +207,7 @@ PATHS_REQUIREMENTS_GENERATION_PROMPT = PromptTemplate(
 # --------------- Courses Suggestion --------------- #
 # ================================================== #
 class _SuggestedCourse(BaseModel):
-    course_id: str = Field(..., description="The id of the suggested course")
+    course_id: int = Field(..., description="The id of the suggested course")
     suggestion_reason: str = Field(
         ..., description="The reason why this course is suggested"
     )

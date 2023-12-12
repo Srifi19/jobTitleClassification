@@ -183,9 +183,9 @@ class _GptAgent:
             print(f"{response = }")
             response_list = [
                 {
-                    "title": available_courses[int(r.course_id)].title,
-                    "description": available_courses[int(r.course_id)].description,
-                    "link": available_courses[int(r.course_id)].url,
+                    "title": available_courses[r.course_id].title,
+                    "description": available_courses[r.course_id].description,
+                    "link": available_courses[r.course_id].url,
                     "reason": r.suggestion_reason,
                 }
                 for r in response
